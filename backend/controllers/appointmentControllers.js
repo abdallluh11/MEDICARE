@@ -1,10 +1,9 @@
 import Appointment from '../models/Appointments.js';
 import Doctor from '../models/Doctor.js';
 import dotenv from 'dotenv';
-import stripe from 'stripe';
+import Stripe from 'stripe';
 import { getAuth } from '@clerk/express';
-import { clerkClient } from '@clerk/express';
-import { ServerApiVersion } from 'mongodb';
+import { clerkClient } from '@clerk/clerk-sdk-node';
 dotenv.config();
 
 const STRIPE_KEY = process.env.STRIPE_SECRET_KEY;
@@ -46,8 +45,8 @@ function resolveClerkUserId(req) {
   }
 }
 
-// to getAppointment
-export const getAppointment = async (req, res) => {
+// to getAppointments
+export const getAppointments = async (req, res) => {
     try {
           const { doctorId, mobile, status, search = "", limit: limitRaw = 50, page: pageRaw = 1, patientClerkId, createdBy } = req.query;
           const limit = Math.min(200, Math.max(1, parseInt(limitRaw, 10) || 50));
@@ -430,3 +429,152 @@ export const conformPayment = async (req, res) => {
 };
 
 // to update an appointment
+export const updateAppointment = async (req, res) => {
+  try {
+    const {id} = req.params;
+    const body = req.body || {};
+    const appt = await Appointment.findById(id);
+
+    if(!appt) return res.status(404).json({
+      success: false,
+      message: "Appointment not found"
+    });
+
+        const terminal = appt.status === "Completed" || appt.status === "Canceled";
+          if (terminal && body.status && body.status !== appt.status) {
+              return res.status(400).json({ success: false, message: "Cannot change status of a completed/canceled appointment" });
+    }
+
+        const update = {};
+        if (body.status) update.status = body.status;
+        if (body.notes !== undefined) update.notes = body.notes;
+
+        if (body.date && body.time) {
+        if (appt.status === "Completed" || appt.status === "Canceled") {
+          return res.status(400).json({ success: false, message: "Cannot reschedule completed/canceled appointment" });
+      }
+          update.date = body.date;
+          update.time = body.time;
+          update.status = "Rescheduled";
+          update.rescheduledTo = { date: body.date, time: body.time };
+        }
+          const updated = await Appointment.findByIdAndUpdate(id, update,
+            {new: true, runValidators: true }
+          ).populate({path: "doctorId", select: "name imageUrl" }).lean();
+
+          return res.json({success: true, appointment: updated});
+      
+        } catch (err) {
+          console.error("UpdateAppointment Error:", err);
+          return res.status(500).json({ success: false, message: "Server error" });
+        }
+    };
+
+    // to CanceledAppointment
+export const cancelAppointment = async (req, res) => {
+  try {
+      const {id} = req.params;
+      const body = req.body || {};
+      const appt = await Appointment.findById(id);
+
+      if(!appt) return res.status(404).json({
+        success: false,
+        message: "Appointment not found"
+        });
+        appt.status = "Canceled";
+        await appt.save();
+        return res.json({ success: true, appointment: appt });
+
+    } catch (err) {
+      console.error("CancelAppointment Error:", err);
+      return res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
+// to get Status 
+export const getStats = async (req, res) => {
+  try {
+    const total = await Appointment.countDocuments();
+    const paidAgg = await Appointment.aggregate([{ $match: { "payment.status": "Paid" } }, { $group: { _id: null, total: { $sum: "$fees" } } }]);
+    const revenue = (paidAgg[0] && paidAgg[0].total) || 0;
+
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const recent = await Appointment.countDocuments({createdAt: {$gte: sevenDaysAgo} });
+
+      return res.json({
+        success: true,
+        stats: {total, recent, recentLast7Days: recent }
+      });
+
+  } 
+    catch (err) {
+      console.error("getStats Error:", err);
+      return res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
+// to getAppointments By Doctor
+export const getAppointmentsByDoctor = async (req, res) => {
+  try {
+
+      const {doctorId} = req.params;
+      if(!doctorId) return res.status(400).json({
+        success: false,
+        message: "Doctor Id required"
+
+      });
+
+        const { mobile, status, search = "", limit: limitRaw = 50, page: pageRaw = 1 } = req.query;
+        const limit = Math.min(200, Math.max(1, parseInt(limitRaw, 10) || 50));
+        const page = Math.max(1, parseInt(pageRaw, 10) || 1);
+        const skip = (page - 1) * limit;
+        // filter
+        const filter = { doctorId };
+        if (mobile) filter.mobile = mobile;
+        if (status) filter.status = status;
+        if (search) {
+          const re = new RegExp(search, "i");
+          filter.$or = [{ patientName: re }, { mobile: re }, { notes: re }];
+
+        }
+        const items = await Appointment.find(filter).sort({date: 1, time: 1}).skip(skip).limit(limit)
+        .populate("doctorId", "name specialization owner imageUrl image").lean();
+
+        const total = await Appointment.countDocuments(filter);
+        return res.json({
+          success: true,
+          Appointment: items,
+          meta: { page, limit, total, count: items.length }
+        });
+    } 
+    catch (err) {
+      console.error("getAppointmentsByDoctor Error:", err);
+      return res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
+// to get Register user count
+export async function getRegisterUserCount(req, res) {
+  try{
+    const totalUsers = await clerkClient.users.getCount();
+    return res.json({ success: true, totalUsers})
+  }
+   catch (err) {
+      console.error("getRegisterUserCount Error:", err);
+      return res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
+export default {
+  getAppointments,
+  getAppointmentsByPatients,
+  createAppointment,
+  conformPayment,
+  updateAppointment,
+  cancelAppointment,
+  getStats,
+  getAppointmentsByDoctor,
+  getRegisterUserCount
+
+};
