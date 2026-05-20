@@ -1,8 +1,11 @@
 import Service from "../models/Service.js";
-import { uploadToCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
+import {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} from "../utils/cloudinary.js";
 
 // Helpers Functions
-// so this function converts array like input into a clean array 
+// so this function converts array like input into a clean array
 // when empty or invalid it return empty array ie : [];
 const parseJsonArrayField = (field) => {
   if (!field) return [];
@@ -23,11 +26,13 @@ const parseJsonArrayField = (field) => {
 };
 
 // so this function takes data-time-slot strings and group them into a
-// YYYY-MM-DD with the time 
+// YYYY-MM-DD with the time
 function normalizeSlotsToMap(slotStrings = []) {
   const map = {};
   slotStrings.forEach((raw) => {
-    const m = raw.match(/^(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})\s*•\s*(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    const m = raw.match(
+      /^(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})\s*•\s*(\d{1,2}):(\d{2})\s*(AM|PM)/i,
+    );
     if (!m) {
       // fallback: keep raw in an "unspecified" bucket
       map["unspecified"] = map["unspecified"] || [];
@@ -35,8 +40,20 @@ function normalizeSlotsToMap(slotStrings = []) {
       return;
     }
     const [, day, monShort, year, hour, minute, ampm] = m;
-    const monthIdx = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-      .findIndex(x => x.toLowerCase() === monShort.toLowerCase());
+    const monthIdx = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ].findIndex((x) => x.toLowerCase() === monShort.toLowerCase());
     const mm = String(monthIdx + 1).padStart(2, "0");
     const dd = String(Number(day)).padStart(2, "0");
     const dateKey = `${year}-${mm}-${dd}`; // YYYY-MM-DD
@@ -47,199 +64,196 @@ function normalizeSlotsToMap(slotStrings = []) {
   return map;
 }
 // safely converts into number
-const sanitizePrice = (v) => Number(String(v ?? "0").replace(/[^\d.-]/g, "")) || 0;
+const sanitizePrice = (v) =>
+  Number(String(v ?? "0").replace(/[^\d.-]/g, "")) || 0;
 const parseAvailability = (v) => {
   const s = String(v ?? "available").toLowerCase();
   return s === "available" || s === "true";
 };
 // to create service
 export async function createService(req, res) {
-    try {
-        const b = req.body || {};
-        const instructions = parseJsonArrayField(b.instructions);
-        const rawSlots = parseJsonArrayField(b.slots);
-        const slots = normalizeSlotsToMap(rawSlots);
-        const numericPrice = sanitizePrice(b.price);
-        const available = parseAvailability(b.availability);
+  try {
+    const b = req.body || {};
+    const instructions = parseJsonArrayField(b.instructions);
+    const rawSlots = parseJsonArrayField(b.slots);
+    const slots = normalizeSlotsToMap(rawSlots);
+    const numericPrice = sanitizePrice(b.price);
+    const available = parseAvailability(b.availability);
 
-        let imageUrl = null;
-        let imagePublicId = null;
-        if (req.file) {
-         try {
-            const up = await uploadToCloudinary(req.file.path, "services");
-            imageUrl = up?.secure_url || null;
-            imagePublicId = up?.public_id || null;
-            } catch (err) {
-            console.error("Cloudinary upload error:", err);
-            }
-        } // if the file is present it will be uploaded to service folder in the cloudinary 
+    let imageUrl = null;
+    let imagePublicId = null;
+    if (req.file) {
+      try {
+        const up = await uploadToCloudinary(req.file.path, "services");
+        imageUrl = up?.secure_url || null;
+        imagePublicId = up?.public_id || null;
+      } catch (err) {
+        console.error("Cloudinary upload error:", err);
+      }
+    } // if the file is present it will be uploaded to service folder in the cloudinary
 
-        const service = new Service({
-            name: b.name,
-            about: b.about || "",
-            shortDescription: b.shortDescription || "",
-            price: numericPrice,
-            available, 
-            instructions,
-            slots,
-            imageUrl,
-            imagePublicId
-        });
-        const saved = await service.save();
-        return res.status(201).json({
-            success: true,
-            data: saved,
-            message: "Service Created"
-        });
-    }
-
-    catch (err) {
-        console.error("CreateService Error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Service Error"
-        });
-    }
+    const service = new Service({
+      name: b.name,
+      about: b.about || "",
+      shortDescription: b.shortDescription || "",
+      price: numericPrice,
+      available,
+      instructions,
+      slots,
+      imageUrl,
+      imagePublicId,
+    });
+    const saved = await service.save();
+    return res.status(201).json({
+      success: true,
+      data: saved,
+      message: "Service Created",
+    });
+  } catch (err) {
+    console.error("CreateService Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Service Error",
+    });
+  }
 }
 
-// to get all the services 
+// to get all the services
 export async function getServices(req, res) {
-    try {
-        const list = await Service.find().sort({createdAt: -1}).lean()
-        return res.status(200).json({
-            success: true,
-            data: list
-        });
-    }
-
-    catch (err) {
-        console.error("GetCreateService Error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Service Error"
-        });
-    }
+  try {
+    const list = await Service.find().sort({ createdAt: -1 }).lean();
+    return res.status(200).json({
+      success: true,
+      data: list,
+    });
+  } catch (err) {
+    console.error("GetCreateService Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Service Error",
+    });
+  }
 }
 
 // to get service By id
 export async function getServiceById(req, res) {
   try {
-    const {id} = req.params;
+    const { id } = req.params;
     const service = await Service.findById(id).lean();
-    if(!service) return res.status(404).json({
-      success: false,
-      message: "Service not found"
-    });
+    if (!service)
+      return res.status(404).json({
+        success: false,
+        message: "Service not found",
+      });
     return res.status(200).json({
       success: true,
-      data: service
+      data: service,
+    });
+  } catch (err) {
+    console.error("GetCreateServiceById Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Service Error",
     });
   }
-  catch (err) {
-        console.error("GetCreateServiceById Error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Service Error"
-        });
-    }
 }
 
 // to update a service
 export async function updateService(req, res) {
-    try {
-
-        const {id} = req.params;
-        const existing = await Service.findById(id);
-        if(!existing) return res.status(404).json({
-          success: false,
-          message: "Service not found"
-
-      });
-
-      const b = req.body || {};
-      const updateData = {};
-
-      // to update each filed if already present then update them 
-      if (b.name !== undefined) updateData.name = b.name;
-      if (b.about !== undefined) updateData.about = b.about;
-      if (b.shortDescription !== undefined) updateData.shortDescription = b.shortDescription;
-      if (b.price !== undefined) updateData.price = sanitizePrice(b.price);
-      if (b.availability !== undefined) updateData.available = parseAvailability(b.availability);
-      if (b.instructions !== undefined) updateData.instructions = parseJsonArrayField(b.instructions);
-      if (b.slots !== undefined) updateData.slots = normalizeSlotsToMap(parseJsonArrayField(b.slots));
-
-      if (req.file) {
-        try {
-          const up = await uploadToCloudinary(req.file.path, "services");
-            if (up?.secure_url) {
-              updateData.imageUrl = up.secure_url;
-              updateData.imagePublicId = up.public_id || null;
-              if (existing.imagePublicId) {
-                // it will remove the old image and replace with new
-                try {
-                  await deleteFromCloudinary(existing.imagePublicId);
-                } catch (err) {
-                  console.warn("Cloudinary delete failed:", err?.message || err);
-                }
-              }
-            }
-          } catch (err) {
-            console.error("Cloudinary upload error:", err);
-          }
-      }
-
-      const updated = await Service.findByIdAndUpdate(id, updateData, {
-        new: true,
-        runValidators: true 
-      });
-
-      return res.status(200).json({
-        success: true,
-        data: updated,
-        message:"Service updated"
-      });
-  }
-     catch (err) {
-        console.error("UpdateService Error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Service Error"
-        });
-    }
-  }
-
-  // to delete a Service
-export async function deleteService(req, res) {
   try {
+    const { id } = req.params;
+    const existing = await Service.findById(id);
+    if (!existing)
+      return res.status(404).json({
+        success: false,
+        message: "Service not found",
+      });
 
-      const {id} = req.params;
-       const existing = await Service.findById(id);
-        if(!existing) return res.status(404).json({
-          success: false,
-          message: "Service not found"
+    const b = req.body || {};
+    const updateData = {};
 
-       });
-          if(existing.imagePublicId){
+    // to update each filed if already present then update them
+    if (b.name !== undefined) updateData.name = b.name;
+    if (b.about !== undefined) updateData.about = b.about;
+    if (b.shortDescription !== undefined)
+      updateData.shortDescription = b.shortDescription;
+    if (b.price !== undefined) updateData.price = sanitizePrice(b.price);
+    if (b.availability !== undefined)
+      updateData.available = parseAvailability(b.availability);
+    if (b.instructions !== undefined)
+      updateData.instructions = parseJsonArrayField(b.instructions);
+    if (b.slots !== undefined)
+      updateData.slots = normalizeSlotsToMap(parseJsonArrayField(b.slots));
+
+    if (req.file) {
+      try {
+        const up = await uploadToCloudinary(req.file.path, "services");
+        if (up?.secure_url) {
+          updateData.imageUrl = up.secure_url;
+          updateData.imagePublicId = up.public_id || null;
+          if (existing.imagePublicId) {
+            // it will remove the old image and replace with new
             try {
               await deleteFromCloudinary(existing.imagePublicId);
-            }
-            catch(err) {
-              console.warn("Failed to delete image from cloudinary",
-                err?.message || err
-              );
+            } catch (err) {
+              console.warn("Cloudinary delete failed:", err?.message || err);
             }
           }
-          await existing.deleteOne();
-          return res.status(200).json({
-            success: true,
-            message: "Service Delete."
-          });
-      }
-        catch (err) {
-          console.error("DeleteService Error:", err);
-          return res.status(500).json({
-              success: false,
-              message: "Service Error"
-          });
+        }
+      } catch (err) {
+        console.error("Cloudinary upload error:", err);
       }
     }
+
+    const updated = await Service.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: updated,
+      message: "Service updated",
+    });
+  } catch (err) {
+    console.error("UpdateService Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Service Error",
+    });
+  }
+}
+
+// to delete a Service
+export async function deleteService(req, res) {
+  try {
+    const { id } = req.params;
+    const existing = await Service.findById(id);
+    if (!existing)
+      return res.status(404).json({
+        success: false,
+        message: "Service not found",
+      });
+    if (existing.imagePublicId) {
+      try {
+        await deleteFromCloudinary(existing.imagePublicId);
+      } catch (err) {
+        console.warn(
+          "Failed to delete image from cloudinary",
+          err?.message || err,
+        );
+      }
+    }
+    await existing.deleteOne();
+    return res.status(200).json({
+      success: true,
+      message: "Service Delete.",
+    });
+  } catch (err) {
+    console.error("DeleteService Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Service Error",
+    });
+  }
+}

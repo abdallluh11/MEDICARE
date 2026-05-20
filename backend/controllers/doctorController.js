@@ -1,6 +1,9 @@
 import Doctor from "../models/Doctor.js";
-import dotenv from 'dotenv';
-import { uploadToCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
+import dotenv from "dotenv";
+import {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
 
 // HElPER FUNCTION
@@ -52,7 +55,8 @@ function normalizeDocForClient(raw = {}) {
     doc.schedule = {};
   }
 
-  doc.availability = doc.availability === undefined ? "Available" : doc.availability;
+  doc.availability =
+    doc.availability === undefined ? "Available" : doc.availability;
   doc.patients = doc.patients ?? "";
   doc.rating = doc.rating ?? 0;
   doc.fee = doc.fee ?? doc.fees ?? 0;
@@ -61,80 +65,84 @@ function normalizeDocForClient(raw = {}) {
 }
 // to create a new doctor profile, which includes uploading the profile image to Cloudinary and saving the doctor details in the database
 export async function createDoctor(req, res) {
-    try {
-        const body = req.body || {};
-        if(!body.email || !body.password || !body.name){ 
-            return res.status(409).json({
-                success: false,
-                message: "Email, password and name are required"
-            });
-        }
-        const emailC = (body.email || "").toLowerCase();
-        if(await Doctor.findOne({email: emailC})){
-            return res.status(400).json({
-                success: false,
-                message: "Email already exists"
-            }); 
-        }
-        let imageUrl = body.imageUrl = null;
-        let imagePublicId = body.imagePublicId || null;
-        if(req.file?.path){
-            const uploaded = await uploadToCloudinary(req.file.path, "doctor");
-            imageUrl = uploaded?.secure_url || uploaded?.url || imageUrl
-            imagePublicId = uploaded?.public_id  || uploaded?.url || imagePublicId
-        }
-
-        const schedule = parseScheduleInput(body.schedule);
-        const doc = new Doctor({
-            email: emailC,
-            password: body.password,
-            name: body.name,
-            specialization: body.specialization || "",
-            imageUrl,
-            imagePublicId,
-            availability: body.availability || "Available",
-            experience: body.experience || "",
-            qualifications: body.qualifications || "",
-            location: body.location || "",
-            about: body.about || "",
-            fee: body.fee !== undefined ? Number(body.fee) : 0,
-            schedule,
-            success: body.success || "",
-            patients: body.patients || "",
-            rating: body.rating !== undefined ? Number(body.rating) : 0,
-        });
-
-        await doc.save();
-        const secret = process.env.JWT_SECRET;
-        if(!secret){
-            console.warn("JWT secret is not configured");
-            return res.status(500).json({
-                success: false,
-                message: "JWT secret is not configured"
-            });
-        }
-        
-        const token = jwt.sign({
-             id: doc._id.toString(), email: doc.email,
-             role: "doctor"
-        }, secret, { expiresIn: "7d" });
-
-        const out = normalizeDocForClient(doc.toObject());
-        delete out.password;
-
-        return res.status(201).json({
-            success: true,
-            data: out,
-            token
-        });
+  try {
+    const body = req.body || {};
+    if (!body.email || !body.password || !body.name) {
+      return res.status(409).json({
+        success: false,
+        message: "Email, password and name are required",
+      });
     }
-    catch(err){
-        console.error("Error creating doctor:", err);
-        return res.status(500).json({
-            success: false,
-            message: "An error occurred while creating the doctor profile"
-        }); 
+    const emailC = (body.email || "").toLowerCase();
+    if (await Doctor.findOne({ email: emailC })) {
+      return res.status(400).json({
+        success: false,
+        message: "Email already exists",
+      });
     }
+    let imageUrl = (body.imageUrl = null);
+    let imagePublicId = body.imagePublicId || null;
+    if (req.file?.path) {
+      const uploaded = await uploadToCloudinary(req.file.path, "doctor");
+      imageUrl = uploaded?.secure_url || uploaded?.url || imageUrl;
+      imagePublicId = uploaded?.public_id || uploaded?.url || imagePublicId;
+    }
+
+    const schedule = parseScheduleInput(body.schedule);
+    const doc = new Doctor({
+      email: emailC,
+      password: body.password,
+      name: body.name,
+      specialization: body.specialization || "",
+      imageUrl,
+      imagePublicId,
+      availability: body.availability || "Available",
+      experience: body.experience || "",
+      qualifications: body.qualifications || "",
+      location: body.location || "",
+      about: body.about || "",
+      fee: body.fee !== undefined ? Number(body.fee) : 0,
+      schedule,
+      success: body.success || "",
+      patients: body.patients || "",
+      rating: body.rating !== undefined ? Number(body.rating) : 0,
+    });
+
+    await doc.save();
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      console.warn("JWT secret is not configured");
+      return res.status(500).json({
+        success: false,
+        message: "JWT secret is not configured",
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        id: doc._id.toString(),
+        email: doc.email,
+        role: "doctor",
+      },
+      secret,
+      { expiresIn: "7d" },
+    );
+
+    const out = normalizeDocForClient(doc.toObject());
+    delete out.password;
+
+    return res.status(201).json({
+      success: true,
+      data: out,
+      token,
+    });
+  } catch (err) {
+    console.error("Error creating doctor:", err);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while creating the doctor profile",
+    });
+  }
 }
 
 // to get Doctors new
@@ -148,7 +156,12 @@ export const getDoctors = async (req, res) => {
     const match = {};
     if (q && typeof q === "string" && q.trim()) {
       const re = new RegExp(q.trim(), "i");
-      match.$or = [{ name: re }, { specialization: re }, { speciality: re }, { email: re }];
+      match.$or = [
+        { name: re },
+        { specialization: re },
+        { speciality: re },
+        { email: re },
+      ];
     }
 
     const docs = await Doctor.aggregate([
@@ -166,31 +179,43 @@ export const getDoctors = async (req, res) => {
           appointmentsTotal: { $size: "$appointments" },
           appointmentsCompleted: {
             $size: {
-              $filter: { input: "$appointments", as: "a", cond: { $in: ["$$a.status", ["Confirmed", "Completed"]] } }
-            }
+              $filter: {
+                input: "$appointments",
+                as: "a",
+                cond: { $in: ["$$a.status", ["Confirmed", "Completed"]] },
+              },
+            },
           },
           appointmentsCanceled: {
             $size: {
-              $filter: { input: "$appointments", as: "a", cond: { $eq: ["$$a.status", "Canceled"] } }
-            }
+              $filter: {
+                input: "$appointments",
+                as: "a",
+                cond: { $eq: ["$$a.status", "Canceled"] },
+              },
+            },
           },
           earnings: {
             $sum: {
               $map: {
                 input: {
-                  $filter: { input: "$appointments", as: "a", cond: { $in: ["$$a.status", ["Confirmed", "Completed"]] } }
+                  $filter: {
+                    input: "$appointments",
+                    as: "a",
+                    cond: { $in: ["$$a.status", ["Confirmed", "Completed"]] },
+                  },
                 },
                 as: "p",
-                in: { $ifNull: ["$$p.fees", 0] }
-              }
-            }
-          }
-        }
+                in: { $ifNull: ["$$p.fees", 0] },
+              },
+            },
+          },
+        },
       },
       { $project: { appointments: 0 } },
       { $sort: { name: 1 } },
       { $skip: skip },
-      { $limit: limit }
+      { $limit: limit },
     ]);
 
     const normalized = docs.map((d) => ({
@@ -205,7 +230,7 @@ export const getDoctors = async (req, res) => {
       appointmentsCanceled: d.appointmentsCanceled || 0,
       earnings: d.earnings || 0,
       availability: d.availability ?? "Available",
-      schedule: (d.schedule && typeof d.schedule === "object") ? d.schedule : {},
+      schedule: d.schedule && typeof d.schedule === "object" ? d.schedule : {},
       patients: d.patients ?? "",
       rating: d.rating ?? 0,
       about: d.about ?? "",
@@ -217,7 +242,12 @@ export const getDoctors = async (req, res) => {
     }));
 
     const total = await Doctor.countDocuments(match); // total number of doctors in DB.
-    return res.json({ success: true, data: normalized, doctors: normalized, meta: { page, limit, total } });
+    return res.json({
+      success: true,
+      data: normalized,
+      doctors: normalized,
+      meta: { page, limit, total },
+    });
   } catch (err) {
     console.error("getDoctors:", err);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -228,20 +258,18 @@ export const getDoctorById = async (req, res) => {
   try {
     const { id } = req.params;
     const doc = await Doctor.findById(id).select("-password").lean();
-    if(!doc)
-        return res.status(404).json({
-            success: false,
-            message: "Doctor not found"
+    if (!doc)
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found",
       });
-    
-       return res.json({ success: true, data: normalizeDocForClient(doc) });
-  }
 
-  catch(err){
+    return res.json({ success: true, data: normalizeDocForClient(doc) });
+  } catch (err) {
     console.error("getDoctorById:", err);
     return res.status(500).json({ success: false, message: "Server error" });
   }
-}
+};
 // to updata a doctor
 export async function updateDoctor(req, res) {
   try {
@@ -249,34 +277,63 @@ export async function updateDoctor(req, res) {
     const body = req.body || {};
 
     if (!req.doctor || String(req.doctor._id || req.doctor.id) !== String(id)) {
-      return res.status(403).json({ success: false, message: "Not authorized to update this doctor" });
+      return res
+        .status(403)
+        .json({
+          success: false,
+          message: "Not authorized to update this doctor",
+        });
     }
 
     const existing = await Doctor.findById(id);
-    if (!existing) return res.status(404).json({ success: false, message: "Doctor not found" });
+    if (!existing)
+      return res
+        .status(404)
+        .json({ success: false, message: "Doctor not found" });
 
     if (req.file?.path) {
       const uploaded = await uploadToCloudinary(req.file.path, "doctors");
       if (uploaded) {
         const previousPublicId = existing.imagePublicId;
-        existing.imageUrl = uploaded.secure_url || uploaded.url || existing.imageUrl;
-        existing.imagePublicId = uploaded.public_id || uploaded.publicId || existing.imagePublicId;
+        existing.imageUrl =
+          uploaded.secure_url || uploaded.url || existing.imageUrl;
+        existing.imagePublicId =
+          uploaded.public_id || uploaded.publicId || existing.imagePublicId;
         if (previousPublicId && previousPublicId !== existing.imagePublicId) {
-          deleteFromCloudinary(previousPublicId).catch((e) => console.warn("deleteFromCloudinary warning:", e?.message || e));
+          deleteFromCloudinary(previousPublicId).catch((e) =>
+            console.warn("deleteFromCloudinary warning:", e?.message || e),
+          );
         }
       }
     } else if (body.imageUrl) {
       existing.imageUrl = body.imageUrl;
     }
-  //  if existing then updata the image else show a warning 
+    //  if existing then updata the image else show a warning
     if (body.schedule) existing.schedule = parseScheduleInput(body.schedule);
 
-    const updatable = ["name", "specialization", "experience", "qualifications", "location", "about", "fee", "availability", "success", "patients", "rating"];
-    updatable.forEach((k) => { if (body[k] !== undefined) existing[k] = body[k]; });
+    const updatable = [
+      "name",
+      "specialization",
+      "experience",
+      "qualifications",
+      "location",
+      "about",
+      "fee",
+      "availability",
+      "success",
+      "patients",
+      "rating",
+    ];
+    updatable.forEach((k) => {
+      if (body[k] !== undefined) existing[k] = body[k];
+    });
 
     if (body.email && body.email !== existing.email) {
       const other = await Doctor.findOne({ email: body.email.toLowerCase() });
-      if (other && other._id.toString() !== id) return res.status(409).json({ success: false, message: "Email already in use" });
+      if (other && other._id.toString() !== id)
+        return res
+          .status(409)
+          .json({ success: false, message: "Email already in use" });
       existing.email = body.email.toLowerCase();
     }
 
@@ -292,16 +349,17 @@ export async function updateDoctor(req, res) {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 }
-// to delete a doctor 
+// to delete a doctor
 export async function deleteDoctor(req, res) {
   try {
     const { id } = req.params;
     const existing = await Doctor.findById(id);
-    if (!existing) return res.status(404).json({ 
-      success: false, 
-      message: "Doctor not found" 
-    });
-    if(existing.imagePublicId){
+    if (!existing)
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found",
+      });
+    if (existing.imagePublicId) {
       try {
         await deleteFromCloudinary(existing.imagePublicId);
       } catch (e) {
@@ -310,8 +368,7 @@ export async function deleteDoctor(req, res) {
     }
     await existing.deleteOne();
     return res.json({ success: true, message: "Doctor deleted successfully" });
-  }
-  catch(err){
+  } catch (err) {
     console.error("deleteDoctor error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
   }
@@ -321,25 +378,31 @@ export async function toggleDoctorAvailability(req, res) {
   try {
     const { id } = req.params;
     if (!req.doctor || String(req.doctor._id || req.doctor.id) !== String(id)) {
-      return res.status(403).json({ success: false, message: "Not authorized to update this doctor's availability" });
+      return res
+        .status(403)
+        .json({
+          success: false,
+          message: "Not authorized to update this doctor's availability",
+        });
     }
     const doc = await Doctor.findById(id);
-    if(!doc) return res.status(404).json({
-       success: false, 
-       message: "Doctor not found" 
+    if (!doc)
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found",
       });
-      if(typeof doc.availability === "boolean") doc.availability = !doc.availability;
-      else  doc.availability = doc.availability === "Available" ?
-     "Unavailable" : "Available";
-      
+    if (typeof doc.availability === "boolean")
+      doc.availability = !doc.availability;
+    else
+      doc.availability =
+        doc.availability === "Available" ? "Unavailable" : "Available";
+
     await doc.save();
     const out = normalizeDocForClient(doc.toObject());
     delete out.password;
     return res.json({ success: true, data: out });
-      
-  }
-  catch(err){
-     console.error("toggleAvailability error:", err);
+  } catch (err) {
+    console.error("toggleAvailability error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 }
@@ -349,29 +412,29 @@ export async function toggleDoctorAvailability(req, res) {
 //   try {
 
 //     const { email, password } = req.body || {};
-//     if (!email || !password) 
-//       return res.status(400).json({ 
-//         success: false, 
+//     if (!email || !password)
+//       return res.status(400).json({
+//         success: false,
 //         message: "Email and password are required"
 
 //     });
 
 //     const doc = await Doctor.findOne({ email: email.toLowerCase() });
 //     if(!doc) return res.status(404).json({
-//       success: false, 
-//       message: "Doctor not found" 
+//       success: false,
+//       message: "Doctor not found"
 
 //     });
 
 //       if(doc.password !== password) return res.status(401).json({
-//         success: false, 
-//         message: "Invalid password" 
+//         success: false,
+//         message: "Invalid password"
 
 //       });
 
 //         const secret = process.env.JWT_SECRET;
 //         if(!secret) return res.status(500).json({
-//           success: false, 
+//           success: false,
 //           message: "Server Misconfigured"
 //       });
 
@@ -379,12 +442,12 @@ export async function toggleDoctorAvailability(req, res) {
 //              id: doc._id.toString(), email: doc.email,
 //              role: "doctor"
 //         }, secret, { expiresIn: "7d" });
-        
+
 //         const out = normalizeDocForClient(doc.toObject());
 //         delete out.password;
 //         return res.json({
-//           success: true, 
-//           data: out, 
+//           success: true,
+//           data: out,
 //           token
 //         });
 //     }
@@ -398,44 +461,52 @@ export async function toggleDoctorAvailability(req, res) {
 export async function loginDoctor(req, res) {
   try {
     const { email, password } = req.body || {};
-    if (!email || !password) 
-      return res.status(400).json({ 
-        success: false, 
-        message: "Email and password are required"
-    });
+    if (!email || !password)
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required",
+      });
 
-    const doc = await Doctor.findOne({ email: email.toLowerCase() }).select('+password');
-    if(!doc) return res.status(404).json({
-      success: false, 
-      message: "Doctor not found" 
-    });
+    const doc = await Doctor.findOne({ email: email.toLowerCase() }).select(
+      "+password",
+    );
+    if (!doc)
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found",
+      });
 
-    if(doc.password !== password) return res.status(401).json({
-      success: false, 
-      message: "Invalid password" 
-    });
+    if (doc.password !== password)
+      return res.status(401).json({
+        success: false,
+        message: "Invalid password",
+      });
 
     const secret = process.env.JWT_SECRET;
-    if(!secret) return res.status(500).json({
-      success: false, 
-      message: "Server Misconfigured"
-    });
+    if (!secret)
+      return res.status(500).json({
+        success: false,
+        message: "Server Misconfigured",
+      });
 
-    const token = jwt.sign({
-      id: doc._id.toString(), 
-      email: doc.email,
-      role: "doctor"
-    }, secret, { expiresIn: "7d" });
-    
+    const token = jwt.sign(
+      {
+        id: doc._id.toString(),
+        email: doc.email,
+        role: "doctor",
+      },
+      secret,
+      { expiresIn: "7d" },
+    );
+
     const out = normalizeDocForClient(doc.toObject());
     delete out.password;
     return res.json({
-      success: true, 
-      data: out, 
-      token
+      success: true,
+      data: out,
+      token,
     });
-
-  } catch(err) {
+  } catch (err) {
     console.error("loginDoctor error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
   }

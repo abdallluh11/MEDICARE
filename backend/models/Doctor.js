@@ -1,24 +1,24 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const doctorSchema = new mongoose.Schema({
+const doctorSchema = new mongoose.Schema(
+  {
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      index: true,
+    },
 
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    index: true
-  },
+    password: {
+      type: String,
+      required: true,
+      select: false,
+    },
 
-  password: {
-    type: String,
-    required: true,
-    select: false
-  },
+    name: { type: String, required: true, trim: true },
 
-name: {type: String, required: true, trim: true},
-
- specialization: { type: String, default: "" },
+    specialization: { type: String, default: "" },
 
     imageUrl: { type: String, default: null },
     imagePublicId: { type: String, default: null },
@@ -30,19 +30,21 @@ name: {type: String, required: true, trim: true},
 
     fee: { type: Number, default: 0 },
     availability: {
-    type: String,
-        enum: ["Available", "Unavailable"],
-        default: "Available",
-        },
+      type: String,
+      enum: ["Available", "Unavailable"],
+      default: "Available",
+    },
 
-    schedule: { type: Map, of: [String], default: { } },
+    schedule: { type: Map, of: [String], default: {} },
     success: { type: String, default: "" },
     patients: { type: String, default: "" },
     rating: { type: Number, default: 0 },
-    }, {
-    timestamps: true
-    });
-doctorSchema.index({name: 'text', specialization: 'text'});// text search
-const Doctor = mongoose.models.Doctor || mongoose.model("Doctor", doctorSchema); 
+  },
+  {
+    timestamps: true,
+  },
+);
+doctorSchema.index({ name: "text", specialization: "text" }); // text search
+const Doctor = mongoose.models.Doctor || mongoose.model("Doctor", doctorSchema);
 
 export default Doctor;
