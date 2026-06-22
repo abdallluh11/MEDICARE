@@ -5,7 +5,7 @@ const serviceAppointmentSchema = new mongoose.Schema(
     createBy: {
       type: String,
       default: null,
-      index: true,
+      // index: true,
     },
     patientName: {
       type: String,
@@ -123,7 +123,7 @@ const serviceAppointmentSchema = new mongoose.Schema(
       sessionId: {
         type: String, //stripe checkout sessions
         default: "",
-        index: true,
+        // index: true,
       },
 
       meta: {
