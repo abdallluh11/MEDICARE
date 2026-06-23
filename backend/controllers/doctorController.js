@@ -80,10 +80,10 @@ export async function createDoctor(req, res) {
         message: "Email already exists",
       });
     }
-    let imageUrl = (body.imageUrl = null);
+    let imageUrl = null;
     let imagePublicId = body.imagePublicId || null;
     if (req.file?.path) {
-      const uploaded = await uploadToCloudinary(req.file.path, "doctor");
+      const uploaded = await uploadToCloudinary(req.file.path, "doctors");
       imageUrl = uploaded?.secure_url || uploaded?.url || imageUrl;
       imagePublicId = uploaded?.public_id || uploaded?.url || imagePublicId;
     }
@@ -277,12 +277,10 @@ export async function updateDoctor(req, res) {
     const body = req.body || {};
 
     if (!req.doctor || String(req.doctor._id || req.doctor.id) !== String(id)) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Not authorized to update this doctor",
-        });
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to update this doctor",
+      });
     }
 
     const existing = await Doctor.findById(id);
@@ -378,12 +376,10 @@ export async function toggleDoctorAvailability(req, res) {
   try {
     const { id } = req.params;
     if (!req.doctor || String(req.doctor._id || req.doctor.id) !== String(id)) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Not authorized to update this doctor's availability",
-        });
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to update this doctor's availability",
+      });
     }
     const doc = await Doctor.findById(id);
     if (!doc)
