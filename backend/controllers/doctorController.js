@@ -101,7 +101,7 @@ export async function createDoctor(req, res) {
       qualifications: body.qualifications || "",
       location: body.location || "",
       about: body.about || "",
-      fee: body.fee !== undefined ? Number(body.fee) : 0,
+      fee: (body.fee !== undefined && body.fee !== "" && !isNaN(Number(body.fee))) ? Number(body.fee) : 0,
       schedule,
       success: body.success || "",
       patients: body.patients || "",
