@@ -1,7 +1,7 @@
 import React from "react";
 import { doctorDetailStyles } from "../assets/dummyStyles";
 // Helper Function
-
+// this function will give you output as DD - MM - YYYY;
 function formatDateISO(iso) {
   if (!iso || typeof iso !== "string") return iso;
   const parts = iso.split("-");
@@ -27,6 +27,7 @@ function formatDateISO(iso) {
   return `${day} ${month} ${y}`;
 }
 
+// it will normalize any date-like string 
 function normalizeToDateString(d) {
   if (!d) return null;
   const dt = new Date(d);
@@ -34,6 +35,8 @@ function normalizeToDateString(d) {
   return dt.toISOString().split("T")[0];
 }
 
+// this function will normalize schedule map: ex - 'YYYY-MM-DD': [slots, slot2....];
+// also convert slots to array slots
 function buildScheduleMap(schedule) {
   const map = {};
   if (!schedule || typeof schedule !== "object") return map;
@@ -44,6 +47,8 @@ function buildScheduleMap(schedule) {
   return map;
 }
 
+// this function give past dates first 
+// that i nearest date comes first;
 function getSortedScheduleDates(scheduleLike) {
   let keys = [];
   if (Array.isArray(scheduleLike)) {
@@ -70,6 +75,8 @@ function getSortedScheduleDates(scheduleLike) {
   return [...past, ...future].map((p) => p.ds);
 }
 export const ListPage = () => {
+
+    
   return <div>List</div>;
 };
 export default ListPage;
