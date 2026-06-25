@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { Home } from "./pages/Home";
 import Add from "./pages/Add";
 import { List } from "./pages/List";
+import Appointments from "./pages/Appointments";
 
 function RequireAuth({ children }) {
   const { isLoaded, isSignedIn } = useUser();
@@ -64,6 +65,15 @@ const App = () => {
         element={
           <RequireAuth>
             <List />
+          </RequireAuth>
+        }
+      />
+
+       <Route
+        path="/appointments"
+        element={
+          <RequireAuth>
+            <Appointments />
           </RequireAuth>
         }
       />
