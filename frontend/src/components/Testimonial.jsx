@@ -216,7 +216,7 @@ const Testimonial = () => {
           </div>
 
           <div
-            ref={scrollRefLeft}
+            ref={scrollRefRight}
             className={testimonialStyles.scrollContainer}
             onTouchStart={() => setIsPaused(true)}
             onTouchEnd={() => setIsPaused(false)}
