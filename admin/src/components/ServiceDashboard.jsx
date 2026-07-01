@@ -246,7 +246,7 @@ const ServiceDashboard = ({ services: servicesProp = null }) => {
   }, [filteredServices]);
 
   function formatCurrency(v) {
-    return `₹${Number(v || 0).toLocaleString()}`;
+    return `EGP ${Number(v || 0).toLocaleString()}`;
   }
 
   return (
