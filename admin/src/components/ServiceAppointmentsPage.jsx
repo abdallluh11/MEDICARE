@@ -778,7 +778,7 @@ const ServiceAppointmentsPage = () => {
                             className={serviceAppointmentsStyles.detailIcon}
                           />
                           <span className={serviceAppointmentsStyles.feesText}>
-                            Fees: ₹{a.fees}
+                            Fees: EGP{a.fees}
                           </span>
                         </div>
 

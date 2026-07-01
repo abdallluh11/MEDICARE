@@ -254,7 +254,7 @@ const DashboardPage = () => {
           <StatCard
             icon={<BadgeIndianRupee className=" w-6 h-6" />}
             label="Total Earnings"
-            value={`₹ ${totals.totalEarnings.toLocaleString()}`}
+            value={`EGP ${totals.totalEarnings.toLocaleString()}`}
           />
 
           <StatCard
@@ -350,7 +350,7 @@ const DashboardPage = () => {
                       {d.specialization}
                     </td>
 
-                    <td className={s.tableCell + " " + s.feeText}>₹ {d.fee}</td>
+                    <td className={s.tableCell + " " + s.feeText}>EGP {d.fee}</td>
 
                     <td className={s.tableCell + " " + s.appointmentsText}>
                       {d.appointments.total}
@@ -365,7 +365,7 @@ const DashboardPage = () => {
                     </td>
 
                     <td className={s.tableCell + " " + s.earningsText}>
-                      ₹ {d.earnings.toLocaleString()}
+                      EGP {d.earnings.toLocaleString()}
                     </td>
                   </tr>
                 ))}
@@ -453,7 +453,7 @@ function MobileDoctorCard({ d }) {
 
       <div className={s.mobileEarningsContainer}>
         <div>Earned</div>
-        <div className=" font-semibold">₹ {d.earnings.toLocaleString()}</div>
+        <div className=" font-semibold">EGP {d.earnings.toLocaleString()}</div>
       </div>
     </div>
   );

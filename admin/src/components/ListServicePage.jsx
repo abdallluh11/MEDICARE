@@ -765,7 +765,7 @@ export default function ListServicePage() {
                     </div>
 
                     <div className={s.servicePriceContainer}>
-                      <div className={s.servicePrice}>₹{svc.price}</div>
+                      <div className={s.servicePrice}>EGP{svc.price}</div>
                       <div
                         className={`${s.availabilityBadge} ${
                           svc.available
