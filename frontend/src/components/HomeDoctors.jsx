@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { homeDoctorsStyles, iconSize } from "../assets/dummyStyles";
 import { Link } from "react-router-dom";
-import { ChevronRight, BriefcaseMedical, MousePointer20ff, Medal } from "lucide-react";
+import { ChevronRight, BriefcaseMedical, Ban, Medal } from "lucide-react";
 
 const HomeDoctors = ({ previewCount = 8 }) => {
   const API_BASE = "http://localhost:4000";
@@ -225,7 +225,7 @@ const HomeDoctors = ({ previewCount = 8 }) => {
                             </Link>
                           ) : (
                             <button disabled className={homeDoctorsStyles.buttonUnavailable}>
-                              <MousePointer20ff className=" w-5 h-5" />
+                              <Ban className=" w-5 h-5" />
                               Not Available
                             </button>
                           )}
