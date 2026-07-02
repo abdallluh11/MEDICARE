@@ -16,7 +16,8 @@ const Home = () => {
         <Certification />
         <HomeDoctors />
         <Testimonial />
-        <Footer />
+        <Footer /> 
+        
     </div>
   );
 }
