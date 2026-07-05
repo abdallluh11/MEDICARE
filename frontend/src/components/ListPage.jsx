@@ -5,10 +5,12 @@ import { useParams } from "react-router-dom";
 
 const API_BASE = "http://localhost:4000";
 
+// Convert date and time strings into a Date object for sorting
 function parseDateTime(date, time) {
   return new Date(`${date}T${time}:00`);
 }
 
+// Convert 24-hour time format to 12-hour AM/PM format
 function formatTimeAMPM(time24) {
   if (!time24) return "";
   const [hh, mm] = time24.split(":");
@@ -18,6 +20,7 @@ function formatTimeAMPM(time24) {
   return `${h}:${mm} ${ampm}`;
 }
 
+// Format date for display
 function formatDate(dateStr) {
   if (!dateStr) return "";
   const d = new Date(`${dateStr}T00:00:00`);
@@ -28,6 +31,7 @@ function formatDate(dateStr) {
   });
 }
 
+// Convert time from 12-hour format to 24-hour format
 function to24HourFromMaybe12(timeStr) {
   if (!timeStr) return "00:00";
   const m = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
@@ -45,6 +49,7 @@ function to24HourFromMaybe12(timeStr) {
   return `${String(hh).padStart(2, "0")}:${mm}`;
 }
 
+// Convert time from 24-hour format to 12-hour format
 function to12HourFrom24(hhmm) {
   if (!hhmm) return "12:00 AM";
   const [hh, mm] = hhmm.split(":").map(Number);
@@ -53,6 +58,7 @@ function to12HourFrom24(hhmm) {
   return `${String(h12)}:${String(mm).padStart(2, "0")} ${ampm}`;
 }
 
+// Normalize backend status values for frontend usage
 function backendToFrontendStatus(s) {
   if (!s) return "pending";
   const v = String(s).toLowerCase();
@@ -64,6 +70,7 @@ function backendToFrontendStatus(s) {
   return v;
 }
 
+// Convert frontend status values to backend format
 function frontendToBackendStatus(fs) {
   if (!fs) return "Pending";
   const v = String(fs).toLowerCase();
@@ -75,6 +82,7 @@ function frontendToBackendStatus(fs) {
   return fs;
 }
 
+// Normalize appointment data into a consistent structure
 function normalizeAppointment(a) {
   if (!a) return null;
   const id = a._id || a.id || String(Math.random()).slice(2);
@@ -93,6 +101,7 @@ function normalizeAppointment(a) {
   return { id, patient, age, gender, doctorName, doctorImage, speciality, mobile, date, time, fee, status, raw: a };
 }
 
+// Display appointment status badge
 function StatusBadge({ status }) {
   const base = listPageStyles.statusBadgeBase;
   if (status === "complete") return <span className={`${base} ${listPageStyles.statusBadgeComplete}`}>Completed</span>;
@@ -102,6 +111,7 @@ function StatusBadge({ status }) {
   return <span className={`${base} ${listPageStyles.statusBadgePending}`}>Pending</span>;
 }
 
+// Handle appointment status changes
 function StatusSelect({ appointment, onChange }) {
   const terminal = appointment.status === "complete" || appointment.status === "cancelled";
 
@@ -142,6 +152,7 @@ function StatusSelect({ appointment, onChange }) {
   );
 }
 
+// Handle appointment rescheduling
 function RescheduleButton({ appointment, onReschedule }) {
   const terminal = appointment.status === "complete" || appointment.status === "cancelled";
   const [editing, setEditing] = useState(false);
@@ -214,6 +225,7 @@ const ListPage = () => {
   const params = useParams();
   const doctorId = params.id;
 
+  // Fetch doctor appointments from the API
   async function fetchAppointments() {
     setLoading(true);
     setError(null);
@@ -247,6 +259,7 @@ const ListPage = () => {
     fetchAppointments();
   }, [doctorId]);
 
+  // Update appointment status in the backend
   async function updateStatusRemote(id, newStatus) {
     const appt = appointments.find((p) => p.id === id);
     if (!appt) return;
@@ -275,6 +288,7 @@ const ListPage = () => {
     }
   }
 
+  // Update appointment date and time
   async function rescheduleRemote(id, newDate, newTime24) {
     const appt = appointments.find((p) => p.id === id);
     if (!appt) return;
@@ -305,6 +319,7 @@ const ListPage = () => {
     }
   }
 
+  // Filter and sort appointments before rendering
   const filtered = useMemo(() => {
     return [...appointments]
       .filter((a) => search ? (a.patient || "").toLowerCase().includes(search.toLowerCase()) : true)

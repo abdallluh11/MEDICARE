@@ -5,11 +5,11 @@ import Doctors from "./pages/Doctors";
 import DoctorDetail from "./pages/DoctorDetail";
 import Service from "./pages/Service";
 import ServiceDetailPage from "./pages/ServiceDetailPage";
-import  Contact  from "./pages/Contact";
+import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import DHome from "./pages/DHome";
 import List from "./doctor/List";
-
+import EditProfile from "./doctor/EditProfile";
 
 const App = () => {
   return (
@@ -27,6 +27,10 @@ const App = () => {
         <Route path="/doctor-admin/login" element={<Login />} />
         <Route path="/doctor-admin/:id" element={<DHome />} />
         <Route path="/doctor-admin/:id/appointments" element={<List />} />
+        <Route
+          path="/doctor-admin/:id/profile/edit"
+          element={<EditProfile />}
+        />
       </Routes>
     </div>
   );
