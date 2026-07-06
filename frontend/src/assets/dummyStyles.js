@@ -1,8 +1,6 @@
 // assets/dummyStyles.js
-// 
 
-//
-export const navbarStyle = {
+export const appointmentPageStyles = {
   // Main container styles
   pageContainer: "min-h-screen font-serif bg-linear-to-br from-green-50 to-emerald-100 py-10 px-4",
   maxWidthContainer: "max-w-6xl mx-auto",

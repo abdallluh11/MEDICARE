@@ -212,25 +212,24 @@ export const createServiceAppointment = async (req, res) => {
           "";
 
     const base = {
-      serviceId,
-      serviceName: resolvedServiceName,
-      serviceImage: {
-        url: finalServiceImageUrl,
-        publicId: finalServiceImagePublicId,
-      },
-      patientName: String(patientName).trim(),
-      mobile: String(mobile).trim(),
-      age: age ? Number(age) : undefined,
-      gender: gender || "",
-      date: String(date),
-      hour: Number(finalHour),
-      minute: Number(finalMinute),
-      ampm: finalAmpm,
-      fees: numericAmount,
-      createdBy: clerkUserId,
-      notes: notes || "",
-    };
-
+  serviceId,
+  serviceName: resolvedServiceName,
+  serviceImage: {
+    url: finalServiceImageUrl,
+    publicId: finalServiceImagePublicId,
+  },
+  patientName: String(patientName).trim(),
+  mobile: String(mobile).trim(),
+  age: age ? Number(age) : undefined,
+  gender: gender || "",
+  date: String(date),
+  hour: Number(finalHour),
+  minute: Number(finalMinute),
+  ampm: finalAmpm,
+  fees: numericAmount,
+  createBy: clerkUserId,  
+  notes: notes || "",
+};
     // Free appointment
     if (numericAmount === 0) {
       const created = await ServiceAppointment.create({
@@ -305,7 +304,7 @@ export const createServiceAppointment = async (req, res) => {
           serviceName: String(resolvedServiceName).slice(0, 200),
           patientName: base.patientName,
           mobile: base.mobile,
-          clerkUserId: base.createdBy || "",
+          clerkUserId: base.createBy || "",
           serviceImageUrl: finalServiceImageUrl
             ? String(finalServiceImageUrl).slice(0, 200)
             : "",
@@ -406,7 +405,7 @@ export const confirmServiceAppointment = async (req, res) => {
           status: "Confirmed",
         },
       },
-      { new: true },
+      { returnDocument: 'after' },
     );
 
     if (!appt && session.metadata?.appointmentId) {
@@ -450,6 +449,7 @@ export const getServiceAppointments = async (req, res) => {
       page: pageRaw = 1,
       limit: limitRaw = 50,
       search = "",
+      createdBy,
     } = req.query;
     const limit = Math.min(200, Math.max(1, parseInt(limitRaw, 10) || 50));
     const page = Math.max(1, parseInt(pageRaw, 10) || 1);
@@ -459,6 +459,7 @@ export const getServiceAppointments = async (req, res) => {
     if (serviceId) filter.serviceId = serviceId;
     if (mobile) filter.mobile = mobile;
     if (status) filter.status = status;
+    if (createdBy) filter.createBy = createdBy;
     if (search) {
       const re = new RegExp(search, "i");
       filter.$or = [{ patientName: re }, { mobile: re }, { notes: re }];
@@ -560,7 +561,7 @@ export const updateServiceAppointment = async (req, res) => {
       id,
       { $set: updates },
       {
-        new: true,
+        returnDocument: 'after',
         runValidators: true,
       },
     );
@@ -671,7 +672,7 @@ export const getPatientAppointmentsByPatient = async (req, res) => {
       });
 
     const filter = {};
-    if (resolvedUserId) filter.createdBy = resolvedUserId;
+    if (resolvedUserId) filter.createBy = resolvedUserId;
     if (mobile) filter.mobile = mobile;
 
     const list = await ServiceAppointment.find(filter)

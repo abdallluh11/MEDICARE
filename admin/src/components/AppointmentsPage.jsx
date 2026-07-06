@@ -23,6 +23,16 @@ function formatDateISO(iso) {
   }
 }
 
+// normalizes any date-ish value down to a raw "YYYY-MM-DD" key for safe comparison
+function normalizeDateKey(value) {
+  if (!value) return "";
+  const match = String(value).match(/^(\d{4}-\d{2}-\d{2})/);
+  if (match) return match[1];
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return "";
+  return d.toISOString().slice(0, 10);
+}
+
 // this function takes slot with date time and returns a date obg
 function dateTimeFromSlot(slot) {
   try {
@@ -39,10 +49,39 @@ function dateTimeFromSlot(slot) {
     return new Date(slot.date + "T00:00:00");
   }
 }
+
+// maps a single raw appointment document from the API into the shape the UI uses
+function mapAppointment(a) {
+  const doctorName = (a.doctorId && a.doctorId.name) || a.doctorName || "";
+  const speciality =
+    (a.doctorId && a.doctorId.specialization) ||
+    a.speciality ||
+    a.specialization ||
+    "General";
+  const fee = typeof a.fees === "number" ? a.fees : a.fee || 0;
+  return {
+    id: a._id || a.id,
+    patientName: a.patientName || "",
+    age: a.age || "",
+    gender: a.gender || "",
+    mobile: a.mobile != null ? String(a.mobile) : "",
+    doctorName,
+    speciality,
+    fee,
+    slot: {
+      date: normalizeDateKey(a.date || (a.slot && a.slot.date)),
+      time: a.time || (a.slot && a.slot.time) || "00:00 AM",
+    },
+    status: a.status || (a.payment && a.payment.status) || "Pending",
+    raw: a,
+  };
+}
+
 const AppointmentsPage = () => {
   const isAdmin = true; // as this adimn is logged in and is Major Admin for response send by him
 
   const [appointments, setAppointments] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -51,9 +90,10 @@ const AppointmentsPage = () => {
   const [filterSpeciality, setFilterSpeciality] = useState("all");
   const [showAll, setShowAll] = useState(false);
 
-  // fetch list from server
-
+  // fetch list from server — re-runs when the search query changes
   useEffect(() => {
+    const controller = new AbortController();
+
     async function load() {
       setLoading(true);
       setError(null);
@@ -62,48 +102,35 @@ const AppointmentsPage = () => {
         const url = `${API_BASE}/api/appointments?limit=200${
           q ? `&search=${encodeURIComponent(q)}` : ""
         }`;
-        const res = await fetch(url);
+        const res = await fetch(url, { signal: controller.signal });
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
           throw new Error(body?.message || `Failed to fetch (${res.status})`);
         }
         const data = await res.json();
-        const items = (data?.appointments || []).map((a) => {
-          const doctorName =
-            (a.doctorId && a.doctorId.name) || a.doctorName || "";
-          const speciality =
-            (a.doctorId && a.doctorId.specialization) ||
-            a.speciality ||
-            a.specialization ||
-            "General";
-          const fee = typeof a.fees === "number" ? a.fees : a.fee || 0;
-          return {
-            id: a._id || a.id,
-            patientName: a.patientName || "",
-            age: a.age || "",
-            gender: a.gender || "",
-            mobile: a.mobile || "",
-            doctorName,
-            speciality,
-            fee,
-            slot: {
-              date: a.date || (a.slot && a.slot.date) || "",
-              time: a.time || (a.slot && a.slot.time) || "00:00 AM",
-            },
-            status: a.status || (a.payment && a.payment.status) || "Pending",
-            raw: a, // keep original in case we need it
-          };
-        });
-        setAppointments(items); // fetch all the details present on the DB.
+
+        // IMPORTANT: backend returns the array under "Appointment" (capital A, singular),
+        // and the total under "meta.total" — not "appointments" / "total" at the root.
+        const items = (data?.Appointment || []).map(mapAppointment);
+
+        setAppointments(items);
+        setTotalCount(data?.meta?.total ?? items.length);
       } catch (err) {
-        console.error("Load appointments error:", err);
-        setError(err.message || "Failed to load appointments");
+        if (err.name !== "AbortError") {
+          console.error("Load appointments error:", err);
+          setError(err.message || "Failed to load appointments");
+        }
       } finally {
         setLoading(false);
       }
     }
-    load();
-  }, []);
+
+    const t = setTimeout(load, 300); // debounce so it doesn't fire per keystroke
+    return () => {
+      clearTimeout(t);
+      controller.abort();
+    };
+  }, [query]);
 
   // compute available specialities from fetched appointments.
   const specialities = useMemo(() => {
@@ -120,7 +147,11 @@ const AppointmentsPage = () => {
         (a.speciality || "").toLowerCase() !== filterSpeciality.toLowerCase()
       )
         return false;
-      if (filterDate && a.slot?.date !== filterDate) return false;
+      if (
+        filterDate &&
+        normalizeDateKey(a.slot?.date) !== normalizeDateKey(filterDate)
+      )
+        return false;
       if (!q) return true;
       return (
         (a.doctorName || "").toLowerCase().includes(q) ||
@@ -139,6 +170,7 @@ const AppointmentsPage = () => {
       return db - da;
     });
   }, [filtered]);
+
   // display all the appt or the filtered ones
   const displayed = useMemo(
     () => (showAll ? sortedFiltered : sortedFiltered.slice(0, 8)),
@@ -151,17 +183,15 @@ const AppointmentsPage = () => {
     if (!appt) return;
 
     const statusLower = (appt.status || "").toLowerCase();
-    const isCancelled =
-      statusLower === "canceled" || statusLower === "cancelled";
+    const isCancelled = statusLower === "canceled"; // enum only has "Canceled" (single L)
     const isCompleted = statusLower === "completed";
 
-    // dont allow cancel or complete to be overdone.
     if (isCancelled || isCompleted) return;
 
     const ok = window.confirm(
       `As admin, mark appointment for ${appt.patientName} with ${
         appt.doctorName
-      } on ${formatDateISO(appt.slot.date)} at ${appt.slot.time} as CANCELLED?`,
+      } on ${formatDateISO(appt.slot.date)} at ${appt.slot.time} as CANCELED?`,
     );
     if (!ok) return;
 
@@ -180,7 +210,7 @@ const AppointmentsPage = () => {
         throw new Error(body?.message || `Cancel failed (${res.status})`);
       }
       const data = await res.json();
-      const updated = data?.appointment || data?.appointments || null;
+      const updated = data?.appointment || data?.Appointment || null;
       if (updated) {
         setAppointments((prev) =>
           prev.map((p) =>
@@ -189,7 +219,7 @@ const AppointmentsPage = () => {
                   ...p,
                   status: updated.status || "Canceled",
                   slot: {
-                    date: updated.date || p.slot.date,
+                    date: normalizeDateKey(updated.date) || p.slot.date,
                     time: updated.time || p.slot.time,
                   },
                   raw: updated,
@@ -205,27 +235,9 @@ const AppointmentsPage = () => {
         const reload = await fetch(`${API_BASE}/api/appointments?limit=200`);
         if (reload.ok) {
           const body = await reload.json();
-          const items = (body?.appointments || []).map((a) => ({
-            id: a._id || a.id,
-            patientName: a.patientName || "",
-            age: a.age || "",
-            gender: a.gender || "",
-            mobile: a.mobile || "",
-            doctorName: (a.doctorId && a.doctorId.name) || a.doctorName || "",
-            speciality:
-              (a.doctorId && a.doctorId.specialization) ||
-              a.speciality ||
-              a.specialization ||
-              "General",
-            fee: typeof a.fees === "number" ? a.fees : a.fee || 0,
-            slot: {
-              date: a.date || (a.slot && a.slot.date) || "",
-              time: a.time || (a.slot && a.slot.time) || "00:00 AM",
-            },
-            status: a.status || (a.payment && a.payment.status) || "Pending",
-            raw: a,
-          }));
+          const items = (body?.Appointment || []).map(mapAppointment);
           setAppointments(items);
+          setTotalCount(body?.meta?.total ?? items.length);
         }
       } catch (e) {}
     }
@@ -240,6 +252,11 @@ const AppointmentsPage = () => {
             <h1 className={pageStyles.headerTitle}>Appointment</h1>
             <p className={pageStyles.headerSubtitle}>
               Manage and search upcoming patient appointments
+              {totalCount > appointments.length && (
+                <span className="ml-2 text-amber-600">
+                  (showing {appointments.length} of {totalCount})
+                </span>
+              )}
             </p>
           </div>
 
@@ -310,8 +327,7 @@ const AppointmentsPage = () => {
           <main className={pageStyles.gridContainer}>
             {displayed.map((a, idx) => {
               const statusLower = (a.status || "").toLowerCase();
-              const isCancelled =
-                statusLower === "canceled" || statusLower === "canceled";
+              const isCancelled = statusLower === "canceled";
               const isCompleted = statusLower === "completed";
               const isDisabled = isCancelled || isCompleted;
 
@@ -408,12 +424,12 @@ const AppointmentsPage = () => {
         {sortedFiltered.length > 8 && (
           <div className=" flex justify-center mt-4">
             <button
-            onClick={() => setShowAll((s) => !s)}
-            className={pageStyles.showMoreButton}
+              onClick={() => setShowAll((s) => !s)}
+              className={pageStyles.showMoreButton}
             >
-              {showAll 
-              ? "Show Less"
-              : `Show more (${sortedFiltered.length - 8})`}
+              {showAll
+                ? "Show Less"
+                : `Show more (${sortedFiltered.length - 8})`}
             </button>
           </div>
         )}

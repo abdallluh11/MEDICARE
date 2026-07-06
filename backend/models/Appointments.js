@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const appointmentsSchema = new mongoose.Schema(
   {
     owner: { type: String, required: true, index: true },
-    create: { type: String, default: null, index: true },
+    createdBy: { type: String, default: null, index: true },
 
     // patient info
 
