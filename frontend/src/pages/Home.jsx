@@ -6,20 +6,17 @@ import HomeDoctors from "../components/HomeDoctors";
 import Testimonial from "../components/Testimonial";
 import Footer from "../components/Footer";
 
-
-
 const Home = () => {
   return (
     <div>
-        <Navbar />
-        <Banner />
-        <Certification />
-        <HomeDoctors />
-        <Testimonial />
-        <Footer /> 
-        
+      <Navbar />
+      <Banner />
+      <Certification />
+      <HomeDoctors />
+      <Testimonial />
+      <Footer />
     </div>
   );
-}
+};
 
 export default Home;

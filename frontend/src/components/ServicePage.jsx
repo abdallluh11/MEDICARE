@@ -168,7 +168,6 @@ const ServicePage = () => {
     loadServices();
   }, [API_BASE]);
 
-  
   return (
     <div className={servicePageStyles.pageContainer}>
       <div className={servicePageStyles.maxWidthContainer}>
@@ -193,7 +192,7 @@ const ServicePage = () => {
 
         {loading ? (
           <section className={servicePageStyles.skeletonGrid}>
-            {Array.from({length: 8}).map((_,i) => (
+            {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className={servicePageStyles.skeletonCard}>
                 <div className={servicePageStyles.skeletonImage}></div>
                 <div className={servicePageStyles.skeletonText1}></div>
@@ -205,7 +204,9 @@ const ServicePage = () => {
         ) : (
           <section className={servicePageStyles.servicesGrid}>
             {services.length > 0 ? (
-              services.map((s) => <ServiceCard key={s.id || s.name} service={s} />)
+              services.map((s) => (
+                <ServiceCard key={s.id || s.name} service={s} />
+              ))
             ) : (
               <div className={servicePageStyles.emptyState}>
                 No service available.

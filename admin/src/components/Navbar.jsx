@@ -98,7 +98,6 @@ const Navbar = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
-
   useEffect(() => {
     const storeToken = async () => {
       if (!authLoaded || !userLoaded) return;
@@ -130,15 +129,14 @@ const Navbar = () => {
     storeToken();
   }, [authLoaded, userLoaded, isSignedIn, getToken]);
 
- 
   const handleOpenSignIn = () => {
-  if (!clerk || !clerk.openSignIn) {
-    console.warn("Clerk is not available or openSignIn method is missing.");
-    return;
-  }
-  clerk.openSignIn({ redirectUrl: "/h" });
-};
- 
+    if (!clerk || !clerk.openSignIn) {
+      console.warn("Clerk is not available or openSignIn method is missing.");
+      return;
+    }
+    clerk.openSignIn({ redirectUrl: "/h" });
+  };
+
   const handleSignOut = async () => {
     if (!clerk || !clerk.signOut) {
       console.warn("Clerk is not available");

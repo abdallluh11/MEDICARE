@@ -596,7 +596,8 @@ export const AddPage = () => {
                 s.submitButton +
                 " " +
                 s.cursorPointer +
-                " " + (loading ? s.submitButtonDisabled : s.submitButtonEnabled)
+                " " +
+                (loading ? s.submitButtonDisabled : s.submitButtonEnabled)
               }
             >
               {loading ? "Adding..." : "Add Doctor To Team"}
@@ -604,7 +605,7 @@ export const AddPage = () => {
           </div>
         </form>
       </div>
-{/* TOAST */}
+      {/* TOAST */}
       {toast.show && (
         <div
           className={
@@ -654,6 +655,3 @@ export const AddPage = () => {
 };
 
 export default AddPage;
-
-
-

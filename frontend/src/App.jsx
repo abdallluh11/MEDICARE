@@ -91,16 +91,28 @@ const App = () => {
           <Route path="/appointment/success" element={<VerifyPaymentPage />} />
           <Route path="/appointment/cancel" element={<VerifyPaymentPage />} />
 
-          <Route path="/appointment/success" element={<VerifyServicePaymentPage/>} />
-          <Route path="/appointment/cancel" element={<VerifyServicePaymentPage />} />
+          <Route
+            path="/appointment/success"
+            element={<VerifyServicePaymentPage />}
+          />
+          <Route
+            path="/appointment/cancel"
+            element={<VerifyServicePaymentPage />}
+          />
 
-           {/* Payment Routes */}
+          {/* Payment Routes */}
           <Route path="/appointment/success" element={<VerifyPaymentPage />} />
           <Route path="/appointment/cancel" element={<VerifyPaymentPage />} />
-          
+
           {/* Service Payment Routes */}
-          <Route path="/service-appointment/success" element={<VerifyServicePaymentPage />} />
-          <Route path="/service-appointment/cancel" element={<VerifyServicePaymentPage />} />
+          <Route
+            path="/service-appointment/success"
+            element={<VerifyServicePaymentPage />}
+          />
+          <Route
+            path="/service-appointment/cancel"
+            element={<VerifyServicePaymentPage />}
+          />
         </Routes>
       </div>
 

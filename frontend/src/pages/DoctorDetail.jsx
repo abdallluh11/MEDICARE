@@ -27,7 +27,7 @@ const API_BASE = "http://localhost:4000";
 // this function will date into an obj
 function getScheduleDates(schedule) {
   if (!schedule) return [];
-// supporting YYYY-MM-DD
+  // supporting YYYY-MM-DD
   const keys =
     typeof schedule === "object" && !Array.isArray(schedule)
       ? Object.keys(schedule)

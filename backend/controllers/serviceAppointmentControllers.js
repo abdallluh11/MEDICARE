@@ -212,24 +212,24 @@ export const createServiceAppointment = async (req, res) => {
           "";
 
     const base = {
-  serviceId,
-  serviceName: resolvedServiceName,
-  serviceImage: {
-    url: finalServiceImageUrl,
-    publicId: finalServiceImagePublicId,
-  },
-  patientName: String(patientName).trim(),
-  mobile: String(mobile).trim(),
-  age: age ? Number(age) : undefined,
-  gender: gender || "",
-  date: String(date),
-  hour: Number(finalHour),
-  minute: Number(finalMinute),
-  ampm: finalAmpm,
-  fees: numericAmount,
-  createBy: clerkUserId,  
-  notes: notes || "",
-};
+      serviceId,
+      serviceName: resolvedServiceName,
+      serviceImage: {
+        url: finalServiceImageUrl,
+        publicId: finalServiceImagePublicId,
+      },
+      patientName: String(patientName).trim(),
+      mobile: String(mobile).trim(),
+      age: age ? Number(age) : undefined,
+      gender: gender || "",
+      date: String(date),
+      hour: Number(finalHour),
+      minute: Number(finalMinute),
+      ampm: finalAmpm,
+      fees: numericAmount,
+      createBy: clerkUserId,
+      notes: notes || "",
+    };
     // Free appointment
     if (numericAmount === 0) {
       const created = await ServiceAppointment.create({
@@ -405,7 +405,7 @@ export const confirmServiceAppointment = async (req, res) => {
           status: "Confirmed",
         },
       },
-      { returnDocument: 'after' },
+      { returnDocument: "after" },
     );
 
     if (!appt && session.metadata?.appointmentId) {
@@ -561,7 +561,7 @@ export const updateServiceAppointment = async (req, res) => {
       id,
       { $set: updates },
       {
-        returnDocument: 'after',
+        returnDocument: "after",
         runValidators: true,
       },
     );

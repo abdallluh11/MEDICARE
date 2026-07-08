@@ -9,7 +9,7 @@ import {
   updateServiceAppointment,
   cancelServiceAppointment,
   getServiceAppointmentStats,
-  getPatientAppointmentsByPatient
+  getPatientAppointmentsByPatient,
 } from "../controllers/serviceAppointmentControllers.js";
 
 const serviceAppointmentRouter = express.Router();
@@ -18,8 +18,18 @@ serviceAppointmentRouter.get("/", getServiceAppointments);
 serviceAppointmentRouter.get("/confirm", confirmServiceAppointment);
 serviceAppointmentRouter.get("/stats/summary", getServiceAppointmentStats);
 
-serviceAppointmentRouter.post("/", clerkMiddleware(), requireAuth(), createServiceAppointment);
-serviceAppointmentRouter.get("/me", clerkMiddleware(), requireAuth(), getPatientAppointmentsByPatient);
+serviceAppointmentRouter.post(
+  "/",
+  clerkMiddleware(),
+  requireAuth(),
+  createServiceAppointment,
+);
+serviceAppointmentRouter.get(
+  "/me",
+  clerkMiddleware(),
+  requireAuth(),
+  getPatientAppointmentsByPatient,
+);
 
 serviceAppointmentRouter.get("/:id", getServiceAppointmentById);
 serviceAppointmentRouter.put("/:id", updateServiceAppointment);

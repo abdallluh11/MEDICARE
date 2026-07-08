@@ -9,10 +9,9 @@ import {
   Users,
   Calendar,
   Phone,
-  
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import banner from '../assets/BannerImg.png';
+import banner from "../assets/BannerImg.png";
 
 const Banner = () => {
   const navigate = useNavigate();

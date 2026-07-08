@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 
-const serviceSchema =  new mongoose.Schema({
-    name: {type: String, required: true, trim: true},
+const serviceSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, trim: true },
     about: { type: String, default: "" },
     shortDescription: { type: String, default: "" },
 
@@ -19,11 +20,14 @@ const serviceSchema =  new mongoose.Schema({
     totalAppointments: { type: Number, default: 0 },
     completed: { type: Number, default: 0 },
     canceled: { type: Number, default: 0 },
-}, {
-    timestamps: true
-});
+  },
+  {
+    timestamps: true,
+  },
+);
 
-serviceSchema.index({name: "text", shortDescription: "text"})
+serviceSchema.index({ name: "text", shortDescription: "text" });
 
-const Service = mongoose.models.Service || mongoose.model("Service", serviceSchema);
+const Service =
+  mongoose.models.Service || mongoose.model("Service", serviceSchema);
 export default Service;

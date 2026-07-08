@@ -174,7 +174,8 @@ export const createAppointment = async (req, res) => {
     if (existingBooking) {
       return res.status(409).json({
         success: false,
-        message: "You already have an appointment with this doctor at the selected slots.",
+        message:
+          "You already have an appointment with this doctor at the selected slots.",
       });
     }
 
@@ -212,7 +213,8 @@ export const createAppointment = async (req, res) => {
 
     const doctorImagePublicId =
       (doctor.imagePublicId && String(doctor.imagePublicId).trim()) ||
-      (doctorImagePublicIdFromBody && String(doctorImagePublicIdFromBody).trim()) ||
+      (doctorImagePublicIdFromBody &&
+        String(doctorImagePublicIdFromBody).trim()) ||
       "";
 
     const doctorImage = { url: doctorImageUrl, publicId: doctorImagePublicId };
@@ -317,7 +319,8 @@ export const createAppointment = async (req, res) => {
       });
     } catch (stripeErr) {
       console.error("Stripe create session error:", stripeErr);
-      const message = stripeErr?.raw?.message || stripeErr?.message || "Stripe error";
+      const message =
+        stripeErr?.raw?.message || stripeErr?.message || "Stripe error";
       return res.status(502).json({
         success: false,
         message: `Payment provider error: ${message}`,

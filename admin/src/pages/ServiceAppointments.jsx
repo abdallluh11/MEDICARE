@@ -1,14 +1,14 @@
-import React from 'react'
-import Navbar from '../components/Navbar'
-import ServiceAppointmentsPage from '../components/ServiceAppointmentsPage'
+import React from "react";
+import Navbar from "../components/Navbar";
+import ServiceAppointmentsPage from "../components/ServiceAppointmentsPage";
 
 const ServiceAppointments = () => {
   return (
     <div>
-        <Navbar />
-        <ServiceAppointmentsPage />
+      <Navbar />
+      <ServiceAppointmentsPage />
     </div>
-  )
-}
+  );
+};
 
-export default ServiceAppointments
+export default ServiceAppointments;

@@ -198,39 +198,47 @@ const HomeDoctors = ({ previewCount = 8 }) => {
                 )}
                 {/* body */}
                 <div className={homeDoctorsStyles.cardBody}>
-                  <h3 className={homeDoctorsStyles.doctorName}
-                  id={`doctors${doctor.id}-name`}
+                  <h3
+                    className={homeDoctorsStyles.doctorName}
+                    id={`doctor-${doctor.id}-name`}
                   >
                     {doctor.name}
                   </h3>
-                    <p className={homeDoctorsStyles.specialization}>
-                      {doctor.specialization}
-                    </p>
+                  <p className={homeDoctorsStyles.specialization}>
+                    {doctor.specialization}
+                  </p>
 
-                      <div className={homeDoctorsStyles.experienceContainer}>
-                        <div className={homeDoctorsStyles.experienceBadge}>
-                          <Medal className={`${iconSize.small} 4-h`} />
-                          <span>{doctor.experience} years Experience</span>
-                      </div>
+                  <div className={homeDoctorsStyles.experienceContainer}>
+                    <div className={homeDoctorsStyles.experienceBadge}>
+                      <Medal className={`${iconSize.small} h-4`} />
+                      <span>{doctor.experience} years Experience</span>
                     </div>
+                  </div>
 
-                      <div className={homeDoctorsStyles.buttonContainer}>
-                        <div className=" w-full">
-                          {doctor.available ? (
-                            <Link to={`/doctor/${doctor.id}`} state={{
-                              doctor: doctor.raw || doctor
-                            }} className={homeDoctorsStyles.buttonAvailable}> 
-                            <ChevronRight className=" w-5 h-5" />
-                            Book Now
-                            </Link>
-                          ) : (
-                            <button disabled className={homeDoctorsStyles.buttonUnavailable}>
-                              <Ban className=" w-5 h-5" />
-                              Not Available
-                            </button>
-                          )}
-                        </div>
-                      </div>
+                  <div className={homeDoctorsStyles.buttonContainer}>
+                    <div className=" w-full">
+                      {doctor.available ? (
+                        <Link
+                          to={`/doctor/${doctor.id}`}
+                          state={{
+                            doctor: doctor.raw || doctor,
+                          }}
+                          className={homeDoctorsStyles.buttonAvailable}
+                        >
+                          <ChevronRight className=" w-5 h-5" />
+                          Book Now
+                        </Link>
+                      ) : (
+                        <button
+                          disabled
+                          className={homeDoctorsStyles.buttonUnavailable}
+                        >
+                          <Ban className=" w-5 h-5" />
+                          Not Available
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </article>
             ))}

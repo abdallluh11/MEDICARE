@@ -229,7 +229,7 @@ export default function ListServicePage() {
     });
   }
 
-  // convert map-like slots to array slots of object 
+  // convert map-like slots to array slots of object
   function convertSlotsMapToArray(slotsMap) {
     try {
       const out = [];
@@ -301,7 +301,7 @@ export default function ListServicePage() {
 
   function toggleDetails(id) {
     setOpenDetails((prev) => ({ [id]: !prev[id] }));
-  }// to toggle
+  } // to toggle
 
   // to edit service
   async function startEdit(service) {
@@ -401,7 +401,7 @@ export default function ListServicePage() {
     return { valid: true };
   }
 
-  // to prevent from duplicate slots to be present 
+  // to prevent from duplicate slots to be present
   function findDuplicateInSlots(slots = []) {
     const seen = new Set();
     for (let s of slots) {
@@ -603,7 +603,7 @@ export default function ListServicePage() {
     setEditForm((p) => ({ ...p, slots: [...(p.slots || []), newSlot] }));
   }
 
-  // to update any slot 
+  // to update any slot
   function updateSlot(slotId, field, value) {
     setEditForm((p) => {
       const oldSlot = (p.slots || []).find((s) => s.id === slotId) || {};
@@ -657,7 +657,7 @@ export default function ListServicePage() {
       return true;
     });
 
-    // format date helper
+  // format date helper
   function formatDateHuman(dateStr) {
     if (!dateStr) return "";
     const parts = dateStr.split("-");

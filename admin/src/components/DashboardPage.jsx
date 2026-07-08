@@ -350,7 +350,9 @@ const DashboardPage = () => {
                       {d.specialization}
                     </td>
 
-                    <td className={s.tableCell + " " + s.feeText}>EGP {d.fee}</td>
+                    <td className={s.tableCell + " " + s.feeText}>
+                      EGP {d.fee}
+                    </td>
 
                     <td className={s.tableCell + " " + s.appointmentsText}>
                       {d.appointments.total}
@@ -458,4 +460,3 @@ function MobileDoctorCard({ d }) {
     </div>
   );
 }
-

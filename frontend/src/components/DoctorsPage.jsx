@@ -289,7 +289,7 @@ const DoctorsPage = () => {
                       disabled
                       className={doctorsPageStyles.notAvailableButton}
                     >
-                      <Ban className={doctorsPageStyles.notAvailableButton} />
+                      <Ban className="w-5 h-5" />
                       Not Available
                     </button>
                   )}
@@ -357,3 +357,4 @@ const DoctorsPage = () => {
 };
 
 export default DoctorsPage;
+

@@ -91,7 +91,7 @@ const App = () => {
         }
       />
 
-        <Route
+      <Route
         path="/add-service"
         element={
           <RequireAuth>
@@ -99,7 +99,7 @@ const App = () => {
           </RequireAuth>
         }
       />
-        <Route
+      <Route
         path="/list-service"
         element={
           <RequireAuth>
@@ -107,7 +107,7 @@ const App = () => {
           </RequireAuth>
         }
       />
-        <Route
+      <Route
         path="/service-appointments"
         element={
           <RequireAuth>

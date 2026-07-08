@@ -1,14 +1,14 @@
-import React from 'react'
-import DoctorNavbar from './DoctorNavbar'
-import ListPage from '../components/ListPage'
+import React from "react";
+import DoctorNavbar from "./DoctorNavbar";
+import ListPage from "../components/ListPage";
 
 const List = () => {
   return (
     <div>
-        <DoctorNavbar />
-        <ListPage />
+      <DoctorNavbar />
+      <ListPage />
     </div>
-  )
-}
+  );
+};
 
-export default List
+export default List;

@@ -89,31 +89,86 @@ function normalizeAppointment(a) {
   const patient = a.patientName || a.patient || a.name || "Unknown";
   const age = a.age ?? a.patientAge ?? "";
   const gender = a.gender || "";
-  const doctorName = (a.doctorId && a.doctorId.name) || a.doctorName || a.doctor || "";
-  const doctorImage = (a.doctorId && (a.doctorId.imageUrl || a.doctorId.image)) || a.doctorImage || a.doctorImageUrl || "";
-  const speciality = (a.doctorId && (a.doctorId.specialization || a.doctorId.speciality)) || a.speciality || a.specialization || "";
+  const doctorName =
+    (a.doctorId && a.doctorId.name) || a.doctorName || a.doctor || "";
+  const doctorImage =
+    (a.doctorId && (a.doctorId.imageUrl || a.doctorId.image)) ||
+    a.doctorImage ||
+    a.doctorImageUrl ||
+    "";
+  const speciality =
+    (a.doctorId && (a.doctorId.specialization || a.doctorId.speciality)) ||
+    a.speciality ||
+    a.specialization ||
+    "";
   const mobile = a.mobile || a.phone || "";
   const fee = Number(a.fees ?? a.fee ?? a.payment?.amount ?? 0) || 0;
   const date = a.date || (a.slot && a.slot.date) || "";
-  const rawTime = a.time || (a.slot && a.slot.time) || (a.hour != null ? `${String(a.hour).padStart(2, "0")}:${String(a.minute || 0).padStart(2, "0")}` : "");
+  const rawTime =
+    a.time ||
+    (a.slot && a.slot.time) ||
+    (a.hour != null
+      ? `${String(a.hour).padStart(2, "0")}:${String(a.minute || 0).padStart(2, "0")}`
+      : "");
   const time = to24HourFromMaybe12(rawTime);
-  const status = backendToFrontendStatus(a.status || a.payment?.status || "pending");
-  return { id, patient, age, gender, doctorName, doctorImage, speciality, mobile, date, time, fee, status, raw: a };
+  const status = backendToFrontendStatus(
+    a.status || a.payment?.status || "pending",
+  );
+  return {
+    id,
+    patient,
+    age,
+    gender,
+    doctorName,
+    doctorImage,
+    speciality,
+    mobile,
+    date,
+    time,
+    fee,
+    status,
+    raw: a,
+  };
 }
 
 // Display appointment status badge
 function StatusBadge({ status }) {
   const base = listPageStyles.statusBadgeBase;
-  if (status === "complete") return <span className={`${base} ${listPageStyles.statusBadgeComplete}`}>Completed</span>;
-  if (status === "cancelled") return <span className={`${base} ${listPageStyles.statusBadgeCancelled}`}>Cancelled</span>;
-  if (status === "confirmed") return <span className={`${base} ${listPageStyles.statusBadgeConfirmed}`}>Confirmed</span>;
-  if (status === "rescheduled") return <span className={`${base} ${listPageStyles.statusBadgeRescheduled}`}>Rescheduled</span>;
-  return <span className={`${base} ${listPageStyles.statusBadgePending}`}>Pending</span>;
+  if (status === "complete")
+    return (
+      <span className={`${base} ${listPageStyles.statusBadgeComplete}`}>
+        Completed
+      </span>
+    );
+  if (status === "cancelled")
+    return (
+      <span className={`${base} ${listPageStyles.statusBadgeCancelled}`}>
+        Cancelled
+      </span>
+    );
+  if (status === "confirmed")
+    return (
+      <span className={`${base} ${listPageStyles.statusBadgeConfirmed}`}>
+        Confirmed
+      </span>
+    );
+  if (status === "rescheduled")
+    return (
+      <span className={`${base} ${listPageStyles.statusBadgeRescheduled}`}>
+        Rescheduled
+      </span>
+    );
+  return (
+    <span className={`${base} ${listPageStyles.statusBadgePending}`}>
+      Pending
+    </span>
+  );
 }
 
 // Handle appointment status changes
 function StatusSelect({ appointment, onChange }) {
-  const terminal = appointment.status === "complete" || appointment.status === "cancelled";
+  const terminal =
+    appointment.status === "complete" || appointment.status === "cancelled";
 
   if (appointment.status === "rescheduled") {
     return (
@@ -123,7 +178,9 @@ function StatusSelect({ appointment, onChange }) {
         className={`${listPageStyles.statusSelect} ${terminal ? listPageStyles.statusSelectDisabled : listPageStyles.statusSelectEnabled}`}
         title="After reschedule you can mark Completed or Cancelled"
       >
-        <option value="rescheduled" disabled>Rescheduled</option>
+        <option value="rescheduled" disabled>
+          Rescheduled
+        </option>
         <option value="complete">Completed</option>
         <option value="cancelled">Cancelled</option>
       </select>
@@ -146,7 +203,9 @@ function StatusSelect({ appointment, onChange }) {
       title={terminal ? "Status cannot be changed" : "Change status"}
     >
       {options.map((opt) => (
-        <option key={opt.value} value={opt.value} className="text-sm">{opt.label}</option>
+        <option key={opt.value} value={opt.value} className="text-sm">
+          {opt.label}
+        </option>
       ))}
     </select>
   );
@@ -154,7 +213,8 @@ function StatusSelect({ appointment, onChange }) {
 
 // Handle appointment rescheduling
 function RescheduleButton({ appointment, onReschedule }) {
-  const terminal = appointment.status === "complete" || appointment.status === "cancelled";
+  const terminal =
+    appointment.status === "complete" || appointment.status === "cancelled";
   const [editing, setEditing] = useState(false);
   const [date, setDate] = useState(appointment.date || "");
   const [time, setTime] = useState(appointment.time || "09:00");
@@ -176,7 +236,10 @@ function RescheduleButton({ appointment, onReschedule }) {
 
   function save() {
     if (!date || !time) return;
-    if (date < minDate) { setDate(minDate); return; }
+    if (date < minDate) {
+      setDate(minDate);
+      return;
+    }
     onReschedule(date, time);
     setEditing(false);
   }
@@ -196,7 +259,9 @@ function RescheduleButton({ appointment, onReschedule }) {
           <button
             onClick={() => setEditing(true)}
             disabled={terminal}
-            title={terminal ? "Cannot reschedule completed/cancelled" : "Reschedule"}
+            title={
+              terminal ? "Cannot reschedule completed/cancelled" : "Reschedule"
+            }
             className={`${listPageStyles.rescheduleButton} ${terminal ? listPageStyles.rescheduleButtonDisabled : listPageStyles.rescheduleButtonEnabled}`}
           >
             Reschedule
@@ -204,11 +269,26 @@ function RescheduleButton({ appointment, onReschedule }) {
         </div>
       ) : (
         <div className={listPageStyles.rescheduleForm}>
-          <input type="date" value={date} min={minDate} onChange={(e) => setDate(e.target.value)} className={listPageStyles.dateInput} />
-          <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className={listPageStyles.timeInput} />
+          <input
+            type="date"
+            value={date}
+            min={minDate}
+            onChange={(e) => setDate(e.target.value)}
+            className={listPageStyles.dateInput}
+          />
+          <input
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            className={listPageStyles.timeInput}
+          />
           <div className={listPageStyles.rescheduleButtons}>
-            <button onClick={save} className={listPageStyles.saveButton}>Save</button>
-            <button onClick={cancel} className={listPageStyles.cancelButton}>Cancel</button>
+            <button onClick={save} className={listPageStyles.saveButton}>
+              Save
+            </button>
+            <button onClick={cancel} className={listPageStyles.cancelButton}>
+              Cancel
+            </button>
           </div>
         </div>
       )}
@@ -234,7 +314,9 @@ const ListPage = () => {
       const res = await fetch(url);
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body?.message || `Failed to fetch appointments (${res.status})`);
+        throw new Error(
+          body?.message || `Failed to fetch appointments (${res.status})`,
+        );
       }
       const body = await res.json();
       const list = Array.isArray(body.Appointment)
@@ -244,7 +326,9 @@ const ListPage = () => {
           : Array.isArray(body)
             ? body
             : (body.items ?? body.data ?? []);
-      const normalized = (Array.isArray(list) ? list : []).map(normalizeAppointment).filter(Boolean);
+      const normalized = (Array.isArray(list) ? list : [])
+        .map(normalizeAppointment)
+        .filter(Boolean);
       setAppointments(normalized);
     } catch (err) {
       console.error("fetchAppointments:", err);
@@ -265,7 +349,9 @@ const ListPage = () => {
     if (!appt) return;
     if (appt.status === "complete" || appt.status === "cancelled") return;
     const backendStatus = frontendToBackendStatus(newStatus);
-    setAppointments((prev) => prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p)));
+    setAppointments((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p)),
+    );
     try {
       const res = await fetch(`${API_BASE}/api/appointments/${id}`, {
         method: "PUT",
@@ -274,16 +360,29 @@ const ListPage = () => {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body?.message || `Status update failed (${res.status})`);
+        throw new Error(
+          body?.message || `Status update failed (${res.status})`,
+        );
       }
       const body = await res.json();
       const updated = body.appointment || body;
       setAppointments((prev) =>
-        prev.map((p) => p.id === id ? normalizeAppointment(updated) || { ...p, status: backendToFrontendStatus(updated.status || backendStatus) } : p)
+        prev.map((p) =>
+          p.id === id
+            ? normalizeAppointment(updated) || {
+                ...p,
+                status: backendToFrontendStatus(
+                  updated.status || backendStatus,
+                ),
+              }
+            : p,
+        ),
       );
     } catch (err) {
       console.error("updateStatusRemote:", err);
-      setAppointments((prev) => prev.map((p) => (p.id === id ? { ...p, status: appt.status } : p)));
+      setAppointments((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, status: appt.status } : p)),
+      );
       setError(err.message || "Failed to update status");
     }
   }
@@ -295,7 +394,11 @@ const ListPage = () => {
     if (appt.status === "complete" || appt.status === "cancelled") return;
     const time12 = to12HourFrom24(newTime24);
     setAppointments((prev) =>
-      prev.map((p) => p.id === id ? { ...p, date: newDate, time: newTime24, status: "rescheduled" } : p)
+      prev.map((p) =>
+        p.id === id
+          ? { ...p, date: newDate, time: newTime24, status: "rescheduled" }
+          : p,
+      ),
     );
     try {
       const res = await fetch(`${API_BASE}/api/appointments/${id}`, {
@@ -310,7 +413,18 @@ const ListPage = () => {
       const body = await res.json();
       const updated = body.appointment || body;
       setAppointments((prev) =>
-        prev.map((p) => p.id === id ? normalizeAppointment(updated) || { ...p, date: newDate, time: newTime24, status: backendToFrontendStatus(updated.status || "Rescheduled") } : p)
+        prev.map((p) =>
+          p.id === id
+            ? normalizeAppointment(updated) || {
+                ...p,
+                date: newDate,
+                time: newTime24,
+                status: backendToFrontendStatus(
+                  updated.status || "Rescheduled",
+                ),
+              }
+            : p,
+        ),
       );
     } catch (err) {
       console.error("rescheduleRemote:", err);
@@ -322,9 +436,15 @@ const ListPage = () => {
   // Filter and sort appointments before rendering
   const filtered = useMemo(() => {
     return [...appointments]
-      .filter((a) => search ? (a.patient || "").toLowerCase().includes(search.toLowerCase()) : true)
-      .filter((a) => statusFilter ? a.status === statusFilter : true)
-      .sort((a, b) => parseDateTime(b.date, b.time) - parseDateTime(a.date, a.time));
+      .filter((a) =>
+        search
+          ? (a.patient || "").toLowerCase().includes(search.toLowerCase())
+          : true,
+      )
+      .filter((a) => (statusFilter ? a.status === statusFilter : true))
+      .sort(
+        (a, b) => parseDateTime(b.date, b.time) - parseDateTime(a.date, a.time),
+      );
   }, [appointments, search, statusFilter]);
 
   return (
@@ -333,7 +453,9 @@ const ListPage = () => {
         <div className={listPageStyles.headerContainer}>
           <div>
             <h1 className={listPageStyles.headerTitle}>All Appointment</h1>
-            <p className={listPageStyles.headerSubtitle}>Latest at top - search by patient name</p>
+            <p className={listPageStyles.headerSubtitle}>
+              Latest at top - search by patient name
+            </p>
           </div>
 
           <div className={listPageStyles.searchFilterContainer}>
@@ -348,7 +470,10 @@ const ListPage = () => {
                 placeholder="Search Patient Name"
               />
               {search && (
-                <button onClick={() => setSearch("")} className={listPageStyles.clearSearchButton}>
+                <button
+                  onClick={() => setSearch("")}
+                  className={listPageStyles.clearSearchButton}
+                >
                   <X className={listPageStyles.clearSearchIcon} />
                 </button>
               )}
@@ -369,7 +494,9 @@ const ListPage = () => {
         </div>
 
         {loading ? (
-          <div className={listPageStyles.loadingContainer}>Loading Appointment...</div>
+          <div className={listPageStyles.loadingContainer}>
+            Loading Appointment...
+          </div>
         ) : error ? (
           <div className={listPageStyles.errorContainer}>Error: {error}</div>
         ) : (
@@ -383,7 +510,9 @@ const ListPage = () => {
                         src={a.doctorImage}
                         alt={a.doctorName}
                         className={listPageStyles.cardAvatarImage}
-                        onError={(e) => (e.currentTarget.style.display = "none")}
+                        onError={(e) =>
+                          (e.currentTarget.style.display = "none")
+                        }
                       />
                     ) : (
                       <div className={listPageStyles.cardAvatarFallback}>
@@ -393,12 +522,20 @@ const ListPage = () => {
                   </div>
 
                   <div className={listPageStyles.cardContent}>
-                    <div className={listPageStyles.cardPatientName}>{a.patient}</div>
-                    <div className={listPageStyles.cardPatientInfo}>{a.age} yrs · {a.gender}</div>
-                    <div className={listPageStyles.cardDoctorInfo}>
-                      <span className={listPageStyles.cardDoctorName}>{a.doctorName}</span>
+                    <div className={listPageStyles.cardPatientName}>
+                      {a.patient}
                     </div>
-                    <div className={listPageStyles.cardSpeciality}>{a.speciality}</div>
+                    <div className={listPageStyles.cardPatientInfo}>
+                      {a.age} yrs · {a.gender}
+                    </div>
+                    <div className={listPageStyles.cardDoctorInfo}>
+                      <span className={listPageStyles.cardDoctorName}>
+                        {a.doctorName}
+                      </span>
+                    </div>
+                    <div className={listPageStyles.cardSpeciality}>
+                      {a.speciality}
+                    </div>
                     <div className={listPageStyles.cardDateTime}>
                       <span>{formatDate(a.date)}</span>
                       <span>{formatTimeAMPM(a.time)}</span>
@@ -410,7 +547,9 @@ const ListPage = () => {
                 <div className={listPageStyles.dateTimeSection}>
                   <div className={listPageStyles.dateTimeContainer}>
                     <Calendar className={listPageStyles.calendarIcon} />
-                    <span className={listPageStyles.dateText}>{formatDate(a.date)}</span>
+                    <span className={listPageStyles.dateText}>
+                      {formatDate(a.date)}
+                    </span>
                     <span className="sm:inline">:</span>
                     <span>{formatTimeAMPM(a.time)}</span>
                   </div>
@@ -420,13 +559,15 @@ const ListPage = () => {
                 <div className={listPageStyles.contactStatusSection}>
                   <div className={listPageStyles.phoneContainer}>
                     <Phone className={listPageStyles.phoneIcon} />
-                    <span className={listPageStyles.phoneNumber}>{a.mobile}</span>
+                    <span className={listPageStyles.phoneNumber}>
+                      {a.mobile}
+                    </span>
                   </div>
                   <div className={listPageStyles.statusContainer}>
                     <StatusBadge status={a.status} />
-                    <StatusSelect 
+                    <StatusSelect
                       appointment={a}
-                      onChange={(s) => updateStatusRemote(a.id, s)} 
+                      onChange={(s) => updateStatusRemote(a.id, s)}
                     />
                   </div>
                 </div>
@@ -434,7 +575,7 @@ const ListPage = () => {
                 <div className={listPageStyles.rescheduleContainer}>
                   <RescheduleButton
                     appointment={a}
-                    onReschedule={(d, t) => rescheduleRemote(a.id, d, t)} 
+                    onReschedule={(d, t) => rescheduleRemote(a.id, d, t)}
                   />
                 </div>
               </article>
