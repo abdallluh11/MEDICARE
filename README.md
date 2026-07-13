@@ -5,7 +5,6 @@
 
 <img width="333" height="867" alt="{2DFBD849-037C-4C97-B80F-E4A5981E95D3}" src="https://github.com/user-attachments/assets/fad03e80-4d56-4a34-b518-6e8a8e17152b" />
 
-![Uploading {1226F602-7F5E-4E36-95F9-40A61BFA8AFB}.png…]()
 
   
 <img width="1849" height="906" alt="{81FFE810-BE9E-4302-BA0A-8D8E19395338}" src="https://github.com/user-attachments/assets/fd705bb0-830c-4671-97c3-3bda23747a5b" />
